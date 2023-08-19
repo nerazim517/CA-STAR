@@ -1,8 +1,8 @@
 import pygame
 import numpy as np
 from pygame.locals import RESIZABLE
-from CA_star.path_planner import PathPlanner
-from CA_star.grid import Grid
+from path_planner import PathPlanner
+from grid import Grid
 
 
 class FactoryEnvironment:
@@ -53,15 +53,20 @@ class FactoryEnvironment:
 
     def plan_path_for_all_agents(self):
         for agent in self.agents:
-            planned_path = self.path_planner.ca_star(agent.start, agent.destination)
+            planned_path = self.path_planner.ca_star(agent.start, agent.destination, agent.taskStartTime)
             self.planned_path[agent.id] = planned_path
-            time = 0
+            time = agent.taskStartTime
             for location in planned_path:
                 self.grid.space_time_resource_utilization[(location[0], location[1], time)] = agent.id
                 time += 1
 
     def main(self):
         self.plan_path_for_all_agents()
+        print(self.grid.space_time_resource_utilization) #為甚麼安排的路線會重複?
+        for agent_id in self.planned_path.keys():
+            path = self.planned_path.get(agent_id)
+            print(agent_id)
+            print(path)
         time = 0
         clock = pygame.time.Clock()
         # 游戏主循环
@@ -75,10 +80,19 @@ class FactoryEnvironment:
             # for () in planned_path
             for agent_id in self.planned_path.keys():
                 path = self.planned_path.get(agent_id)
-                if time < len(path):
-                    (x, y) = path[time]
-                    current_grid_map[x][y] = agent_id
-
+                for every_location in range(len(path)):
+                    if(path[every_location][2]==time):
+                        x = path[every_location][0]
+                        y = path[every_location][1]
+                        #print(path)
+                        current_grid_map[x][y] = agent_id
+                        break
+                #if time < len(path):
+                    #x = path[time][0]
+                    #y = path[time][1]
+                    
+                    #current_grid_map[x][y] = agent_id
+               
             time += 1
 
             # 填充背景颜色

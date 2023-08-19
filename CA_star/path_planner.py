@@ -1,4 +1,4 @@
-from CA_star.grid import Grid
+from grid import Grid
 import queue
 
 
@@ -12,25 +12,30 @@ class PathPlanner:
 
         return abs(x1 - x2) + abs(y1 - y2)
 
-    def reconstruct_path(self, start, destination, came_from):
+    def reconstruct_path(self, start, destination, came_from, taskStartTime):
         current_location = destination
         path = []
 
         if destination not in came_from:
             return []
-
         while (current_location[0], current_location[1]) != start:
             (x, y, t) = current_location
             path.append((x, y))
             current_location = came_from[current_location]
-        path.append(start)
+        time = taskStartTime + len(path)
+
+        for location_num in range(len(path)):
+            path[location_num] = path[location_num] + (time,)
+            time = time -1
+        path.append((start[0],start[1],taskStartTime))
+        
         path.reverse()
 
         return path
 
-    def ca_star(self, start, destination):
+    def ca_star(self, start, destination, taskStartTime):
         frontier = queue.PriorityQueue()
-        start_space_time_location = (start[0], start[1], 0)
+        start_space_time_location = (start[0], start[1], taskStartTime)
         frontier.put([0, start_space_time_location])
         came_from = {}
         cost = {}
@@ -56,6 +61,6 @@ class PathPlanner:
                     came_from[next_space_time_location] = current_space_time_location
 
             time += 1
-        planned_path = self.reconstruct_path(start, current_space_time_location, came_from)
+        planned_path = self.reconstruct_path(start, current_space_time_location, came_from, taskStartTime)
 
         return planned_path
